@@ -24,10 +24,8 @@ export default function CheckoutSuccessPage() {
       </h1>
       
       <p className="text-lg text-slate-500 mb-12 text-center max-w-md">
-        Your order has been successfully placed. We'll send you an email confirmation with your order details and tracking info shortly.
+        Your order has been successfully placed. We'll send you an email confirmation with your order details and tracking info shortly!
       </p>
-      
-
     </div>
   );
 }
