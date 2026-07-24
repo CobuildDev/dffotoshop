@@ -17,7 +17,8 @@ export const ProductDetails = ({ product }: { product: CameraProduct }) => {
   const brand = product.title.split(' ')[0].toUpperCase();
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    addToCart(product,);
+    //quantity is meant to be added
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -31,15 +32,15 @@ export const ProductDetails = ({ product }: { product: CameraProduct }) => {
   };
 
   // Format original price for display (naive format for mock)
-  const formattedOriginalPrice = product.originalPrice 
-    ? `₦${(product.originalPrice * 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}` 
+  const formattedOriginalPrice = product.originalPrice
+    ? `₦${(product.originalPrice * 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
     : '';
 
   return (
     <div className="w-full bg-white pb-16">
       {/* Container */}
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        
+
         {/* Breadcrumb */}
         <nav className="text-[13px] text-slate-500 mb-8 font-medium flex items-center gap-1.5 flex-wrap">
           <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
@@ -51,21 +52,21 @@ export const ProductDetails = ({ product }: { product: CameraProduct }) => {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
-          
+
           {/* Left Column: Image */}
           <div className="relative aspect-[4/3] md:aspect-square w-full rounded-2xl overflow-hidden bg-[#F4F7F9] flex items-center justify-center p-8">
-             <Image
-                src={product.imageUrl}
-                alt={product.title}
-                fill
-                priority
-                className="object-contain mix-blend-multiply p-4"
-              />
+            <Image
+              src={product.imageUrl}
+              alt={product.title}
+              fill
+              priority
+              className="object-contain mix-blend-multiply p-4"
+            />
           </div>
 
           {/* Right Column: Details */}
           <div className="flex flex-col pt-2 md:pt-4">
-            
+
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight mb-4 tracking-tight">
               {product.title}
             </h1>
@@ -92,10 +93,10 @@ export const ProductDetails = ({ product }: { product: CameraProduct }) => {
 
             {/* Add to Cart Actions */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-10 border-b border-slate-200 pb-10">
-              
+
               {/* Quantity Selector */}
               <div className="flex items-center border border-slate-200 rounded-lg h-12 w-full sm:w-32 bg-white">
-                <button 
+                <button
                   onClick={handleDecrease}
                   className="flex-1 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors rounded-l-lg"
                 >
@@ -104,7 +105,7 @@ export const ProductDetails = ({ product }: { product: CameraProduct }) => {
                 <div className="w-12 h-full flex items-center justify-center text-[15px] font-bold text-slate-900 border-x border-slate-100">
                   {quantity}
                 </div>
-                <button 
+                <button
                   onClick={handleIncrease}
                   className="flex-1 h-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors rounded-r-lg"
                 >
@@ -116,9 +117,8 @@ export const ProductDetails = ({ product }: { product: CameraProduct }) => {
               <Button
                 variant="primary"
                 onClick={handleAddToCart}
-                className={`flex-1 h-12 text-[15px] font-bold tracking-wide rounded-lg transition-all duration-300 shadow-subtle-sm ${
-                  isAdded ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-[#18AD00] hover:bg-[#159a00] text-white'
-                }`}
+                className={`flex-1 h-12 text-[15px] font-bold tracking-wide rounded-lg transition-all duration-300 shadow-subtle-sm ${isAdded ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-[#18AD00] hover:bg-[#159a00] text-white'
+                  }`}
                 icon={isAdded ? <Check className="w-5 h-5" strokeWidth={3} /> : undefined}
                 iconPosition="left"
               >
@@ -146,13 +146,13 @@ export const ProductDetails = ({ product }: { product: CameraProduct }) => {
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 mt-24">
         <div className="border-t border-slate-200 pt-16">
           <h2 className="text-2xl font-black text-slate-900 mb-8">Customer Reviews</h2>
-          
+
           {/* Review Summary */}
           <div className="flex items-center gap-4 mb-10 bg-slate-50 p-6 rounded-2xl border border-slate-100">
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <svg key={star} className={`w-6 h-6 ${star <= Math.round(product.rating) ? 'text-[#FF9800] fill-[#FF9800]' : 'text-slate-300'}`} viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               ))}
             </div>
