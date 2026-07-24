@@ -101,3 +101,34 @@ export const SUBMIT_REVIEW_MUTATION = gql`
     }
   }
 `;
+
+export const ADD_TO_CART_MUTATION = gql`
+  mutation AddToCart($productId: Int!, $quantity: Int!) {
+    addToCart(input: { productId: $productId, quantity: $quantity }) {
+      cartItem {
+        key
+      }
+    }
+  }
+`;
+
+export const CHECKOUT_MUTATION = gql`
+  mutation Checkout($billing: CustomerAddressInput, $shipping: CustomerAddressInput, $paymentMethod: String!, $customerNote: String, $shippingMethod: [String]) {
+    checkout(input: {
+      billing: $billing,
+      shipping: $shipping,
+      paymentMethod: $paymentMethod,
+      customerNote: $customerNote,
+      shippingMethod: $shippingMethod
+    }) {
+      result
+      redirect
+      order {
+        id
+        orderKey
+        orderNumber
+        status
+      }
+    }
+  }
+`;
