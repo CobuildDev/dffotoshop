@@ -27,9 +27,7 @@ export default function CheckoutSuccessPage() {
         Your order has been successfully placed. We'll send you an email confirmation with your order details and tracking info shortly.
       </p>
       
-      <Button href="/" variant="primary" className="bg-[#18AD00] hover:bg-[#138e00] px-8 h-14 text-lg">
-        Continue Shopping
-      </Button>
+
     </div>
   );
 }
