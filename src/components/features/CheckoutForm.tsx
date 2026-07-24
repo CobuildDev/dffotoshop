@@ -159,16 +159,17 @@ export const CheckoutForm = () => {
                   <span>Product</span>
                   <span>Subtotal</span>
                 </div>
-                {cart.map((item) => (
-                  <div key={item.product.id} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
-                    <span className="text-[14px] text-slate-700 flex-1 pr-4">
-                      {item.product.title} <strong className="text-slate-900">× {item.quantity}</strong>
-                    </span>
-                    <span className="text-[15px] font-bold text-slate-900">
-                      ₦{(item.product.price * item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                ))}
+                {cart.map((item) => {
+                  const numericPrice = parseFloat(item.product.price?.replace(/,/g, '').match(/[\d\.]+/)![0] || '0');
+                  return (
+                    <div key={item.product.id} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
+                      <span className="text-[14px] text-slate-700 flex-1 pr-4" dangerouslySetInnerHTML={{ __html: `${item.product.name} <strong class="text-slate-900">× ${item.quantity}</strong>` }} />
+                      <span className="text-[15px] font-bold text-slate-900">
+                        ₦{(numericPrice * item.quantity).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Totals */}

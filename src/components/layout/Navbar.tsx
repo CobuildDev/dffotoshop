@@ -122,19 +122,15 @@ export const Navbar: React.FC = () => {
                       >
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-200 shrink-0">
                           <Image
-                            src={item.product.imageUrl}
-                            alt={item.product.title}
+                            src={item.product.image?.sourceUrl || '/placeholder.png'}
+                            alt={item.product.name}
                             fill
                             className="object-cover"
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-bold text-slate-900 truncate">
-                            {item.product.title}
-                          </h4>
-                          <p className="text-[13px] font-extrabold text-blue-600 mt-0.5">
-                            {item.product.formattedPrice}
-                          </p>
+                          <h4 className="text-sm font-bold text-slate-900 truncate" dangerouslySetInnerHTML={{ __html: item.product.name }} />
+                          <p className="text-[13px] font-extrabold text-blue-600 mt-0.5" dangerouslySetInnerHTML={{ __html: item.product.price || '' }} />
                           <div className="flex items-center gap-2 mt-2">
                             <button
                               onClick={() => updateQuantity(item.product.id, item.quantity - 1)}

@@ -1,17 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CameraProduct, MOCK_PRODUCTS, STORE_CATEGORIES } from '@/lib/mockData';
+import { WooProduct } from '@/types/product';
 import { ProductCard } from './ProductCard';
 import { Text } from '@/components/ui/Text';
 import { Search, Filter, Camera } from 'lucide-react';
 
 export interface ProductGridProps {
-  products?: CameraProduct[];
+  products?: WooProduct[];
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
-  products = MOCK_PRODUCTS,
+  products = [],
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -22,16 +22,20 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
     // Basic plural stripping for fuzzy match (Cameras -> camera, Lenses -> lense/lens)
     const filterTerm = selectedCategory === 'All' ? '' : selectedCategory.toLowerCase().replace(/s$/, '');
 
+    const categoryName = product.productCategories?.nodes?.[0]?.name?.toLowerCase() || '';
+    const productName = product.name?.toLowerCase() || '';
+    const productDesc = product.description?.toLowerCase() || '';
+
     const matchesCategory =
       selectedCategory === 'All' ||
-      product.category.toLowerCase().includes(filterTerm) ||
-      product.title.toLowerCase().includes(filterTerm) ||
-      product.description.toLowerCase().includes(filterTerm);
+      categoryName.includes(filterTerm) ||
+      productName.includes(filterTerm) ||
+      productDesc.includes(filterTerm);
 
     const matchesSearch =
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase());
+      productName.includes(searchQuery.toLowerCase()) ||
+      productDesc.includes(searchQuery.toLowerCase()) ||
+      categoryName.includes(searchQuery.toLowerCase());
 
     return matchesCategory && matchesSearch;
   });

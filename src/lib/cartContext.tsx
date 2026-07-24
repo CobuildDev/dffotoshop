@@ -1,10 +1,10 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CameraProduct } from './mockData';
+import { WooProduct } from '@/types/product';
 
 export interface CartItem {
-  product: CameraProduct;
+  product: WooProduct;
   quantity: number;
 }
 
@@ -13,7 +13,7 @@ interface CartContextType {
   cartCount: number;
   subtotal: number;
   isCartOpen: boolean;
-  addToCart: (product: CameraProduct) => void;
+  addToCart: (product: WooProduct, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   toggleCart: () => void;
@@ -27,9 +27,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const subtotal = cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+  
+  // WooCommerce returns price as a formatted HTML string, extract the number
+  const extractNumericPrice = (priceStr?: string | null) => {
+    if (!priceStr) return 0;
+    const matches = priceStr.replace(/,/g, '').match(/[\d\.]+/);
+    return matches ? parseFloat(matches[0]) : 0;
+  };
+  
+  const subtotal = cart.reduce((total, item) => total + extractNumericPrice(item.product.price) * item.quantity, 0);
 
-  const addToCart = (product: CameraProduct, quantity: number = 1) => {
+  const addToCart = (product: WooProduct, quantity: number = 1) => {
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.product.id === product.id);
       if (existing) {

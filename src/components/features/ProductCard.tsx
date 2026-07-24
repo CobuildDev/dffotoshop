@@ -3,15 +3,15 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CameraProduct } from '@/lib/mockData';
+import { WooProduct } from '@/types/product';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useCart } from '@/lib/cartContext';
 import { ShoppingBag, Check, Star, Heart } from 'lucide-react';
 
 export interface ProductCardProps {
-  product: CameraProduct;
-  onAddToCart?: (product: CameraProduct) => void;
+  product: WooProduct;
+  onAddToCart?: (product: WooProduct) => void;
   priorityImage?: boolean;
 }
 
@@ -41,8 +41,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Image Container */}
       <Link href={`/product/${product.slug}`} className="relative aspect-[4/5] sm:aspect-[4/4] w-full overflow-hidden rounded-[14px] bg-[#F4F7F9] mb-4 block">
         <Image
-          src={product.imageUrl}
-          alt={product.title}
+          src={product.image?.sourceUrl || '/placeholder.png'}
+          alt={product.name}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={priorityImage}
@@ -54,23 +54,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="flex flex-col flex-1 px-1 pb-1">
         {/* Product Title */}
         <Link href={`/product/${product.slug}`} className="hover:text-emerald-600 transition-colors">
-          <h3 className="text-[14px] sm:text-[15px] font-bold text-slate-900 leading-snug mb-1.5 sm:mb-2 line-clamp-2">
-            {product.title}
-          </h3>
+          <h3 className="text-[14px] sm:text-[15px] font-bold text-slate-900 leading-snug mb-1.5 sm:mb-2 line-clamp-2" dangerouslySetInnerHTML={{ __html: product.name }} />
         </Link>
+
 
         {/* Rating */}
         <div className="flex items-center gap-1.5 mb-4">
           <Star className="w-3.5 h-3.5 fill-[#FF9800] text-[#FF9800]" />
-          <span className="text-[13px] font-semibold text-slate-600">{product.rating}</span>
-          <span className="text-[13px] text-slate-400">({product.reviewsCount} reviews)</span>
+          <span className="text-[13px] font-semibold text-slate-600">{product.averageRating?.toFixed(1) || '0.0'}</span>
+          <span className="text-[13px] text-slate-400">({product.reviewCount || 0} reviews)</span>
         </div>
 
         {/* Footer Price & Action */}
         <div className="flex flex-wrap items-center mt-auto gap-y-2.5 gap-x-1.5">
-          <span className="text-[14px] sm:text-[15px] xl:text-base font-extrabold text-slate-900">
-            {product.formattedPrice}
-          </span>
+          <div className="flex flex-col">
+            {product.salePrice && product.regularPrice && product.salePrice !== product.regularPrice ? (
+              <>
+                <span className="text-[11px] text-slate-400 line-through" dangerouslySetInnerHTML={{ __html: product.regularPrice }} />
+                <span className="text-[14px] sm:text-[15px] xl:text-base font-extrabold text-[#18AD00]" dangerouslySetInnerHTML={{ __html: product.salePrice }} />
+              </>
+            ) : (
+              <span className="text-[14px] sm:text-[15px] xl:text-base font-extrabold text-slate-900" dangerouslySetInnerHTML={{ __html: product.price || '' }} />
+            )}
+          </div>
 
           <button
             onClick={handleAddToCart}
