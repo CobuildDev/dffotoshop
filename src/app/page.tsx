@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { HeroBanner } from '@/components/features/HeroBanner';
 import { ProductGrid } from '@/components/features/ProductGrid';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
