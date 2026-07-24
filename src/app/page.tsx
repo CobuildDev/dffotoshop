@@ -8,7 +8,7 @@ import { Camera, Sparkles, Award, Zap, ArrowUpRight } from 'lucide-react';
 import { graphqlClient } from '@/lib/graphqlClient';
 import { GET_ALL_PRODUCTS } from '@/lib/queries';
 import { WooProduct } from '@/types/product';
-
+const endpoint = 'https://admin.dffotoshop.com.ng/wp/graphql';
 export default async function StorefrontHome() {
   let products: WooProduct[] = [];
 
