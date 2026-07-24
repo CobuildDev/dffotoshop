@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { CameraProduct } from '@/lib/mockData';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
@@ -38,7 +39,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <article className="group relative flex flex-col rounded-[20px] bg-white p-2 sm: transition-all duration-300 hover:-translate-y-1 ring-1 ring-slate-200/60 hover:ring-slate-300/60">
       {/* Image Container */}
-      <div className="relative aspect-[4/5] sm:aspect-[4/4] w-full overflow-hidden rounded-[14px] bg-[#F4F7F9] mb-4">
+      <Link href={`/product/${product.slug}`} className="relative aspect-[4/5] sm:aspect-[4/4] w-full overflow-hidden rounded-[14px] bg-[#F4F7F9] mb-4 block">
         <Image
           src={product.imageUrl}
           alt={product.title}
@@ -47,21 +48,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           priority={priorityImage}
           className="object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500 ease-out"
         />
-
-        {/* Heart Icon Button */}
-        {/* <div className="absolute top-2.5 right-2.5 z-10">
-          <button className="w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-white rounded-full text-slate-500 hover:text-emerald-500 transition-colors shadow-subtle-sm">
-            <Heart className="w-4 h-4" strokeWidth={2.2} />
-          </button>
-        </div> */}
-      </div>
+      </Link>
 
       {/* Content */}
       <div className="flex flex-col flex-1 px-1 pb-1">
         {/* Product Title */}
-        <h3 className="text-[14px] sm:text-[15px] font-medium text-slate-700 line-clamp-2 leading-snug mb-1.5 group-hover:text-emerald-600 transition-colors">
-          {product.title}
-        </h3>
+        <Link href={`/product/${product.slug}`} className="hover:text-emerald-600 transition-colors">
+          <h3 className="text-[14px] sm:text-[15px] font-bold text-slate-900 leading-snug mb-1.5 sm:mb-2 line-clamp-2">
+            {product.title}
+          </h3>
+        </Link>
 
         {/* Rating */}
         <div className="flex items-center gap-1.5 mb-4">

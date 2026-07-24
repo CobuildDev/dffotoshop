@@ -41,13 +41,10 @@ export const Navbar: React.FC = () => {
             </div>
 
             {/* Action Icons */}
-            <div className="hidden md:flex items-center gap-2 lg:gap-3">
+            <div className="flex items-center gap-2 lg:gap-3">
               <button className="w-10 h-10 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] flex items-center justify-center text-slate-700 transition-all duration-300 hover:scale-105 active:scale-95">
                 <Bell className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </button>
-              {/* <button className="w-10 h-10 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] flex items-center justify-center text-slate-700 transition-all duration-300 hover:scale-105 active:scale-95 hover:text-emerald-600">
-                <Heart className="w-[18px] h-[18px]" strokeWidth={1.5} />
-              </button> */}
             </div>
 
             {/* Cart Button */}
@@ -79,15 +76,26 @@ export const Navbar: React.FC = () => {
 
 
 
-      {/* Slide-over Mini Cart Drawer */}
-      {isCartOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div
-            className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm transition-opacity"
-            onClick={toggleCart}
-          />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-subtle-lg p-6 flex flex-col justify-between">
+      {/* Mini Cart Modal/Drawer */}
+      <AnimatePresence>
+        {isCartOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center md:block md:overflow-hidden p-4 sm:p-6 md:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+              onClick={toggleCart}
+            />
+            <motion.div 
+              initial={{ opacity: 0, y: 15, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 15, scale: 0.98 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="relative w-full max-w-md md:fixed md:inset-y-0 md:right-0 md:max-w-full md:flex md:pl-10 z-10"
+            >
+              <div className="w-full md:w-screen md:max-w-md bg-white rounded-3xl md:rounded-none shadow-subtle-lg p-6 flex flex-col justify-between max-h-[85vh] md:max-h-none md:h-full">
 
               <div>
                 <div className="flex items-center justify-between pb-6 mb-6 shadow-[0_1px_0_rgba(226,232,240,0.5)]">
@@ -174,30 +182,32 @@ export const Navbar: React.FC = () => {
                 <div className="pt-6 space-y-4 shadow-[0_-1px_0_rgba(226,232,240,0.5)]">
                   <div className="flex items-center justify-between">
                     <span className="text-[15px] text-slate-500 font-bold">Subtotal</span>
-                    <span className="text-2xl font-black text-slate-900">
-                      ${subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    <span className="text-xl sm:text-2xl font-black text-slate-900">
+                      ₦{subtotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <Text variant="caption" color="muted" className="block text-[11px] font-bold uppercase tracking-wider">
                     Taxes and shipping calculated at checkout.
                   </Text>
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    icon={<ArrowRight className="w-[18px] h-[18px]" strokeWidth={2.5} />}
-                    iconPosition="right"
-                    onClick={() => alert('Proceeding to Headless Checkout...')}
-                    className="py-4 text-[15px] rounded-2xl shadow-subtle-lg hover:shadow-subtle-md"
-                  >
-                    Proceed to Checkout
-                  </Button>
+                  <Link href="/checkout" onClick={toggleCart} className="block w-full">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      icon={<ArrowRight className="w-[18px] h-[18px]" strokeWidth={2.5} />}
+                      iconPosition="right"
+                      className="py-4 text-[15px] rounded-2xl shadow-subtle-lg hover:shadow-subtle-md"
+                    >
+                      Proceed to Checkout
+                    </Button>
+                  </Link>
                 </div>
               )}
-            </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 };

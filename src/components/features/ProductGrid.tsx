@@ -40,12 +40,12 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
     <section className="w-full py-6 space-y-6">
 
       {/* Filter Pills */}
-      <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto p-4 scrollbar-hide">
         {filterOptions.map((filter) => (
           <button
             key={filter}
             onClick={() => setSelectedCategory(filter)}
-            className={`px-5 py-2 rounded-full whitespace-nowrap text-[14px] font-bold transition-all duration-300 ${selectedCategory === filter
+            className={`px-5 py-2 rounded-full whitespace-nowrap text-[12px] font-bold transition-all duration-300 ${selectedCategory === filter
               ? 'bg-[#16a31c] text-white shadow-subtle-sm'
               : 'bg-white text-slate-600 hover:bg-slate-50 ring-1 ring-slate-200/60 hover:text-slate-900'
               }`}
