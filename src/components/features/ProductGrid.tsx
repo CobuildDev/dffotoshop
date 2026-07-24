@@ -21,18 +21,18 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   const filteredProducts = products.filter((product) => {
     // Basic plural stripping for fuzzy match (Cameras -> camera, Lenses -> lense/lens)
     const filterTerm = selectedCategory === 'All' ? '' : selectedCategory.toLowerCase().replace(/s$/, '');
-    
+
     const matchesCategory =
-      selectedCategory === 'All' || 
-      product.category.toLowerCase().includes(filterTerm) || 
+      selectedCategory === 'All' ||
+      product.category.toLowerCase().includes(filterTerm) ||
       product.title.toLowerCase().includes(filterTerm) ||
       product.description.toLowerCase().includes(filterTerm);
-      
+
     const matchesSearch =
       product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.category.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
     return matchesCategory && matchesSearch;
   });
 
@@ -45,11 +45,10 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           <button
             key={filter}
             onClick={() => setSelectedCategory(filter)}
-            className={`px-5 py-2 rounded-full whitespace-nowrap text-[14px] font-bold transition-all duration-300 ${
-              selectedCategory === filter
-                ? 'bg-[#16a31c] text-white shadow-subtle-sm'
-                : 'bg-white text-slate-600 hover:bg-slate-50 ring-1 ring-slate-200/60 hover:text-slate-900'
-            }`}
+            className={`px-5 py-2 rounded-full whitespace-nowrap text-[14px] font-bold transition-all duration-300 ${selectedCategory === filter
+              ? 'bg-[#16a31c] text-white shadow-subtle-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-50 ring-1 ring-slate-200/60 hover:text-slate-900'
+              }`}
           >
             {filter}
           </button>
@@ -63,10 +62,9 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             ))}
           </div>
         ) : (
-          <div className="w-full py-16 px-6 text-center rounded-3xl bg-white shadow-subtle-sm flex flex-col items-center justify-center">
-            <Camera className="w-12 h-12 text-slate-300 mb-3" />
+          <div className="w-full py-16 px-6 text-center rounded-3xl bg-white flex flex-col items-center justify-center">
             <Text variant="title-sm" className="font-bold text-slate-800">
-              No cameras match your search
+              No Items match your search
             </Text>
             <Text variant="body-sm" color="muted" className="mt-1">
               Try adjusting your search terms or category filter.
