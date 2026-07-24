@@ -14,39 +14,17 @@ import {
 
 export const Navbar: React.FC = () => {
   const { cart, cartCount, subtotal, isCartOpen, toggleCart, updateQuantity, removeFromCart } = useCart();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const navLinks = [
-    { name: 'Cameras', href: '#' },
-    { name: 'Lenses', href: '#' },
-    { name: 'Accessories', href: '#', hasDropdown: true },
-    { name: 'Journal', href: '#' },
-  ];
 
   return (
     <>
       <header className="sticky top-0 z-40 w-full bg-white transition-all duration-200 shadow-subtle-sm">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between">
 
-          {/* Left Section: Logo & Desktop Links */}
-          <div className="flex items-center gap-6">
+          {/* Left Section: Logo */}
+          <div className="flex items-center">
             <Link href="/" className="flex items-center group focus:outline-none">
               <Image src="/site-icon.png" width={150} height={50} alt="logo" className="h-9 w-auto" />
             </Link>
-
-            {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-8 ml-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className="flex items-center gap-1.5 text-[15px] text-slate-700 transition-all duration-300 ease-out"
-                >
-                  {link.name}
-                  {link.hasDropdown && <ChevronDown className="w-4 h-4 text-slate-500" strokeWidth={1.5} />}
-                </Link>
-              ))}
-            </nav>
           </div>
 
           {/* Right Section: Search & Icons */}
@@ -67,9 +45,9 @@ export const Navbar: React.FC = () => {
               <button className="w-10 h-10 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] flex items-center justify-center text-slate-700 transition-all duration-300 hover:scale-105 active:scale-95">
                 <Bell className="w-[18px] h-[18px]" strokeWidth={1.5} />
               </button>
-              <button className="w-10 h-10 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] flex items-center justify-center text-slate-700 transition-all duration-300 hover:scale-105 active:scale-95 hover:text-emerald-600">
+              {/* <button className="w-10 h-10 rounded-full bg-[#F3F4F6] hover:bg-[#E5E7EB] flex items-center justify-center text-slate-700 transition-all duration-300 hover:scale-105 active:scale-95 hover:text-emerald-600">
                 <Heart className="w-[18px] h-[18px]" strokeWidth={1.5} />
-              </button>
+              </button> */}
             </div>
 
             {/* Cart Button */}
@@ -83,98 +61,23 @@ export const Navbar: React.FC = () => {
                 {cartCount}
               </span>
             </button>
+          </div>
+        </div>
 
-            {/* Mobile Menu Toggle (Right aligned) */}
-            <button
-              className="lg:hidden p-2 ml-1 text-slate-700 hover:text-emerald-600 transition-colors focus:outline-none group"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open menu"
-            >
-              <div className="flex flex-col gap-[5px] w-[22px] items-end">
-                <span className="w-full h-[2.5px] bg-current rounded-full transition-all group-hover:bg-emerald-600"></span>
-                <span className="w-3/4 h-[2.5px] bg-current rounded-full transition-all group-hover:bg-emerald-600 group-hover:w-full"></span>
-              </div>
-            </button>
+        {/* Mobile Search Bar Row (Visible only on mobile) */}
+        <div className="sm:hidden px-4 pb-3">
+          <div className="relative w-full group">
+            <input
+              type="text"
+              placeholder="Search products..."
+              className="w-full bg-[#F3F4F6] rounded-xl py-2.5 pl-4 pr-10 text-[14px] text-slate-900 placeholder:text-slate-500 focus:outline-none focus:bg-white focus:shadow-subtle-md transition-all duration-300"
+            />
+            <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" strokeWidth={2} />
           </div>
         </div>
       </header>
 
-      {/* Mobile Fullscreen Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="fixed inset-0 z-50 lg:hidden bg-white flex flex-col overflow-hidden"
-          >
-            {/* Header matching Navbar */}
-            <div className="flex items-center justify-between px-4 sm:px-6 h-[72px]">
-              <div className="flex items-center gap-2.5">
-                <Image src="/site-icon.png" width={140} height={50} alt="logo" className="h-9 w-auto" />
-              </div>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-2.5 bg-[#F3F4F6] text-slate-700 rounded-full hover:bg-[#E5E7EB] transition-all duration-300 active:scale-95"
-              >
-                <X className="w-5 h-5" strokeWidth={2.5} />
-              </button>
-            </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col">
-              {/* Prominent Search */}
-              <div className="relative w-full mb-10 group">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className="w-full bg-[#F3F4F6] rounded-2xl py-4 pl-5 pr-14 text-[17px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:shadow-subtle-md transition-all duration-300"
-                />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 w-[42px] h-[42px] bg-[#16a31c] hover:bg-[#128617] rounded-xl flex items-center justify-center text-white shadow-subtle-sm transition-all duration-300 active:scale-95">
-                  <Search className="w-5 h-5" strokeWidth={2.5} />
-                </button>
-              </div>
-
-              {/* Huge Navigation Links */}
-              <nav className="flex flex-col gap-6 mb-12">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    href={link.href}
-                    className="group flex items-center justify-between"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <span className="text-2xl text-slate-900 group-hover:text-emerald-600 transition-colors duration-300">
-                      {link.name}
-                    </span>
-                    {link.hasDropdown && (
-                      <div className="w-10 h-10 rounded-full bg-[#F3F4F6] flex items-center justify-center group-hover:bg-emerald-50 transition-colors duration-300">
-                        <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-emerald-600 transition-colors" strokeWidth={3} />
-                      </div>
-                    )}
-                  </Link>
-                ))}
-              </nav>
-
-              {/* Quick Action Cards (Alerts/Saved) */}
-              <div className="grid grid-cols-2 gap-4 mt-auto">
-                <button className="flex flex-col items-start gap-4 p-5 rounded-3xl bg-[#F8FAFC] hover:bg-emerald-50 transition-colors duration-300 shadow-subtle-sm group">
-                  <div className="w-11 h-11 rounded-full bg-white shadow-subtle-sm flex items-center justify-center text-slate-600 group-hover:text-emerald-600 transition-colors">
-                    <Bell className="w-[22px] h-[22px]" strokeWidth={2.2} />
-                  </div>
-                  <span className="font-extrabold text-slate-900 text-[15px]">Alerts</span>
-                </button>
-                <button className="flex flex-col items-start gap-4 p-5 rounded-3xl bg-[#F8FAFC] hover:bg-emerald-50 transition-colors duration-300 shadow-subtle-sm group">
-                  <div className="w-11 h-11 rounded-full bg-white shadow-subtle-sm flex items-center justify-center text-slate-600 group-hover:text-emerald-600 transition-colors">
-                    <Heart className="w-[22px] h-[22px]" strokeWidth={2.2} />
-                  </div>
-                  <span className="font-extrabold text-slate-900 text-[15px]">Saved</span>
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Slide-over Mini Cart Drawer */}
       {isCartOpen && (

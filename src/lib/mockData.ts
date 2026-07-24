@@ -36,18 +36,6 @@ export interface HeroAdvertBanner {
   offerNote?: string;
 }
 
-export const MOCK_HERO_BANNER: HeroAdvertBanner = {
-  id: "hero-adv-01",
-  title: "Divine Favour Fotoshop",
-  subtitle: "Your one-stop destination in Aba for quality photography and videography accessories. Reliable, durable, and affordable gear for beginners and professionals.",
-  tagline: "ABA, ABIA STATE",
-  bannerImageUrl: "/hero-advert-banner.png",
-  primaryCtaText: "Shop Accessories",
-  secondaryCtaText: "View Store Location",
-  badgeText: "TRUSTED HUB FOR CREATORS",
-  offerNote: "Cameras, lenses, tripods, lighting, mics & storage",
-};
-
 export const MOCK_PRODUCTS: CameraProduct[] = [
   {
     id: "cam-01",
@@ -55,13 +43,13 @@ export const MOCK_PRODUCTS: CameraProduct[] = [
     title: "Leica M11 Rangefinder Digital Camera",
     slug: "leica-m11-rangefinder",
     price: 8995,
-    formattedPrice: "₦8,995.00",
+    formattedPrice: "₦890,995.00",
     originalPrice: 9495,
     category: "Rangefinder",
     badge: "FLAGSHIP",
     rating: 4.9,
     reviewsCount: 42,
-    inStock: true,
+    inStock: false,
     imageUrl: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1000&q=80",
     description: "Iconic rangefinder precision featuring a triple-resolution BSI CMOS sensor (60MP/36MP/18MP) and legendary ergonomics.",
     cameraSpecs: {
@@ -78,7 +66,7 @@ export const MOCK_PRODUCTS: CameraProduct[] = [
     title: "Hasselblad X2D 100C Medium Format",
     slug: "hasselblad-x2d-100c",
     price: 8199,
-    formattedPrice: "₦8,199.00",
+    formattedPrice: "₦1,000,199.00",
     category: "Medium Format",
     badge: "STUDIO CHOICE",
     rating: 5.0,
