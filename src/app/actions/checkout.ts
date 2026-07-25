@@ -1,6 +1,6 @@
 'use server';
 
-const endpoint = 'https://admin.dffotoshop.com.ng/graphql';
+const endpoint = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://admin.dffotoshop.com.ng/wp/graphql';
 
 // Helper function to handle GraphQL requests and manage the WooCommerce Session token
 async function fetchGraphQL(query: string, variables: any = {}, sessionToken: string | null = null) {
@@ -14,7 +14,7 @@ async function fetchGraphQL(query: string, variables: any = {}, sessionToken: st
     method: 'POST',
     headers,
     body: JSON.stringify({ query, variables }),
-    cache: 'no-store', // CRITICAL: Disable caching for dynamic cart operations
+    cache: 'no-store',
   });
 
   const json = await res.json();
@@ -41,13 +41,11 @@ export async function syncCartAndFetchShipping({
   try {
     let currentSession = sessionToken;
 
-    // Step 1: If we already have a session, empty the server cart first so we don't duplicate items
     if (currentSession) {
       const emptyMutation = `mutation EmptyCart { emptyCart(input: {clearPersistentCart: false}) { clientMutationId } }`;
       await fetchGraphQL(emptyMutation, {}, currentSession);
     }
 
-    // Step 2: Add all Zustand cart items to the WooCommerce server cart
     for (const item of lineItems) {
       const addMutation = `
         mutation AddToCart($productId: Int!, $quantity: Int!) {
@@ -63,7 +61,6 @@ export async function syncCartAndFetchShipping({
         throw new Error(result.errors[0]?.message || 'Failed to sync cart with server.');
       }
 
-      // Capture the session token on the first item added
       if (!currentSession && result.newSessionToken) {
         currentSession = result.newSessionToken;
       }
@@ -73,7 +70,6 @@ export async function syncCartAndFetchShipping({
       throw new Error('Could not establish a secure session with the store.');
     }
 
-    // Step 3: Update the customer's shipping address to calculate correct zones
     const updateCustomerMutation = `
       mutation UpdateCustomer($shipping: CustomerAddressInput) {
         updateCustomer(input: { shipping: $shipping }) {
@@ -83,7 +79,6 @@ export async function syncCartAndFetchShipping({
     `;
     await fetchGraphQL(updateCustomerMutation, { shipping: { country, state } }, currentSession);
 
-    // Step 4: Fetch the dynamically calculated shipping methods
     const cartQuery = `
       query GetCartShipping {
         cart {
@@ -102,7 +97,6 @@ export async function syncCartAndFetchShipping({
     let shippingMethods = [];
     const packages = cartResult.data?.cart?.availableShippingMethods || [];
 
-    // WooCommerce groups shipping by packages. Usually, everything is in package [0].
     if (packages.length > 0 && packages[0].rates) {
       shippingMethods = packages[0].rates;
     }
@@ -127,7 +121,6 @@ export async function processCheckout(
   shippingMethod: string,
   sessionToken: string | null
 ) {
-  // If the user tries to checkout without a session, the cart was never synced.
   if (!sessionToken) {
     return { success: false, message: 'Cart session expired or missing. Please refresh and try again.' };
   }
@@ -144,20 +137,42 @@ export async function processCheckout(
         }) {
           result
           redirect
+          order {
+            databaseId
+            orderKey
+          }
         }
       }
     `;
 
-    // Ensure email is passed into the billing and shipping objects for WooCommerce
-    const finalBilling = { ...billing, email: contact.email };
-    const finalShipping = { ...shipping, email: contact.email };
-    const shippingMethodArray = shippingMethod ? [shippingMethod] : undefined;
+    // HELPER: Strip out empty strings/nulls and enforce Paystack API requirements
+    const sanitizeAddress = (addressObj: any, defaultEmail: string, isBilling: boolean = false) => {
+      const clean: any = {};
+      for (const [key, value] of Object.entries(addressObj || {})) {
+        if (value !== null && value !== undefined && value !== '') {
+          clean[key] = value;
+        }
+      }
+
+      clean.email = defaultEmail;
+
+      // CRITICAL FIX: Paystack will crash and return 'null' if a phone number is missing.
+      if (isBilling && !clean.phone) {
+        clean.phone = contact.phone || '08000000000'; // Injects a dummy phone if user left it blank
+      }
+
+      return clean;
+    };
+
+    const finalBilling = sanitizeAddress(billing, contact.email, true);
+    const finalShipping = sanitizeAddress(shipping, contact.email, false);
+    const shippingMethodArray = shippingMethod ? [shippingMethod] : [];
 
     const result = await fetchGraphQL(checkoutQuery, {
       billing: finalBilling,
       shipping: finalShipping,
-      paymentMethod: 'paystack', // This MUST match the ID of your Paystack plugin in WooCommerce
-      customerNote: customerNote || '',
+      paymentMethod: 'bacs',
+      customerNote: customerNote || undefined,
       shippingMethod: shippingMethodArray
     }, sessionToken);
 
@@ -168,9 +183,19 @@ export async function processCheckout(
 
     const checkoutResult = result.data?.checkout;
 
-    // A successful Paystack/WooCommerce headless checkout returns 'SUCCESS' and a redirect URL
-    if (checkoutResult?.result === 'SUCCESS' && checkoutResult?.redirect) {
-      return { success: true, redirectUrl: checkoutResult.redirect };
+    console.log("WOOCOMMERCE RAW RESPONSE:", JSON.stringify(checkoutResult, null, 2));
+
+    if (checkoutResult?.result?.toLowerCase() === 'success') {
+      // We ignore checkoutResult.redirect because 'bacs' tries to send us to the receipt page.
+      // Instead, we force the user to the native payment gateway page to pay via Paystack.
+
+      if (checkoutResult.order?.databaseId && checkoutResult.order?.orderKey) {
+        const orderId = checkoutResult.order.databaseId;
+        const orderKey = checkoutResult.order.orderKey;
+        const paymentUrl = `https://admin.dffotoshop.com.ng/wp/checkout/order-pay/${orderId}/?pay_for_order=true&key=${orderKey}`;
+
+        return { success: true, redirectUrl: paymentUrl };
+      }
     }
 
     return { success: false, message: 'Checkout processed, but no payment link was returned.' };

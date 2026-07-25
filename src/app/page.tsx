@@ -8,7 +8,7 @@ import { Camera, Sparkles, Award, Zap, ArrowUpRight } from 'lucide-react';
 import { graphqlClient } from '@/lib/graphqlClient';
 import { GET_ALL_PRODUCTS } from '@/lib/queries';
 import { WooProduct } from '@/types/product';
-const endpoint = 'https://admin.dffotoshop.com.ng/wp/graphql';
+const endpoint = process.env.NEXT_PUBLIC_WORDPRESS_API_URL || 'https://admin.dffotoshop.com.ng/wp/graphql';
 export default async function StorefrontHome() {
   let products: WooProduct[] = [];
 
@@ -18,13 +18,13 @@ export default async function StorefrontHome() {
   } catch (error) {
     console.error("Failed to fetch products from WooCommerce", error);
   }
-const res = await fetch(endpoint, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ query: GET_ALL_PRODUCTS }),
-  // This tells Next.js to refresh the cache every 60 seconds
-  next: { revalidate: 60 } 
-});
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: GET_ALL_PRODUCTS }),
+    // This tells Next.js to refresh the cache every 60 seconds
+    next: { revalidate: 60 }
+  });
   return (
     <div className="space-y-12">
       {/* 3. Product Catalog Grid Section */}

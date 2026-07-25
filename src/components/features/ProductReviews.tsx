@@ -9,11 +9,43 @@ import { submitReview } from '@/app/actions/submitReview';
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button variant="primary" disabled={pending} className="px-8 py-3 rounded-xl bg-[#18AD00] hover:bg-[#159a00] shadow-subtle-sm font-bold text-white disabled:opacity-50">
+    <Button variant="primary" disabled={pending} className="px-8 py-3 rounded-xl bg-slate-900 hover:bg-black shadow-lg font-bold text-white disabled:opacity-50 transition-all">
       {pending ? 'Submitting...' : 'Submit Review'}
     </Button>
   );
 }
+
+const StarRatingInput = () => {
+  const [rating, setRating] = React.useState(5);
+  const [hover, setHover] = React.useState(0);
+
+  return (
+    <div className="flex items-center gap-1">
+      <input type="hidden" name="rating" value={rating} />
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          className="p-1 focus:outline-none hover:scale-110 transition-transform"
+          onClick={() => setRating(star)}
+          onMouseEnter={() => setHover(star)}
+          onMouseLeave={() => setHover(0)}
+        >
+          <svg className={`w-8 h-8 transition-colors ${star <= (hover || rating) ? 'text-[#FF9800] fill-[#FF9800]' : 'text-slate-200 fill-slate-200'}`} viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      ))}
+      <span className="ml-3 text-sm font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full">
+        {rating === 5 && 'Excellent'}
+        {rating === 4 && 'Good'}
+        {rating === 3 && 'Average'}
+        {rating === 2 && 'Fair'}
+        {rating === 1 && 'Poor'}
+      </span>
+    </div>
+  );
+};
 
 export const ProductReviews = ({ product }: { product: WooProduct }) => {
   const [state, formAction] = useActionState(submitReview, null);
@@ -23,21 +55,27 @@ export const ProductReviews = ({ product }: { product: WooProduct }) => {
   const reviewCount = product.reviewCount || reviews.length;
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 mt-24">
+    <div className="max-w-[1200px] mx-auto lg:px-8 mt-24">
       <div className="border-t border-slate-200 pt-16">
         <h2 className="text-2xl font-black text-slate-900 mb-8">Customer Reviews</h2>
 
         {/* Review Summary */}
-        <div className="flex items-center gap-4 mb-10 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <svg key={star} className={`w-6 h-6 ${star <= Math.round(averageRating) ? 'text-[#FF9800] fill-[#FF9800]' : 'text-slate-300'}`} viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ))}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-12 bg-slate-50 p-6 rounded-[24px] border border-slate-100 shadow-sm w-fit min-w-[320px]">
+          <div className="flex flex-col">
+            <div className="text-4xl font-black text-slate-900">{averageRating.toFixed(1)}</div>
+            <div className="text-sm font-bold text-slate-500 mt-1">out of 5</div>
           </div>
-          <div className="text-lg font-bold text-slate-900">{averageRating.toFixed(1)} out of 5</div>
-          <div className="text-slate-500">Based on {reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</div>
+          <div className="w-px h-12 bg-slate-200 hidden sm:block"></div>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <svg key={star} className={`w-6 h-6 ${star <= Math.round(averageRating) ? 'text-[#FF9800] fill-[#FF9800]' : 'text-slate-200 fill-slate-200'}`} viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ))}
+            </div>
+            <div className="text-sm font-medium text-slate-500">Based on {reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}</div>
+          </div>
         </div>
 
         {/* Comment Form */}
@@ -55,19 +93,13 @@ export const ProductReviews = ({ product }: { product: WooProduct }) => {
               <input type="text" name="author" placeholder="Your Name *" className="w-full h-12 px-4 rounded-lg border border-slate-200 bg-[#F4F7F9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" required />
               <input type="email" name="authorEmail" placeholder="Your Email *" className="w-full h-12 px-4 rounded-lg border border-slate-200 bg-[#F4F7F9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" required />
             </div>
-            
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-semibold text-slate-700">Rating:</span>
-              <select name="rating" className="h-10 px-3 rounded-lg border border-slate-200 bg-[#F4F7F9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20" required defaultValue="5">
-                <option value="5">5 - Excellent</option>
-                <option value="4">4 - Good</option>
-                <option value="3">3 - Average</option>
-                <option value="2">2 - Fair</option>
-                <option value="1">1 - Poor</option>
-              </select>
+
+            <div className="flex flex-col gap-2 mb-4 mt-2">
+              <span className="text-sm font-bold text-slate-700 ml-1">Your Rating</span>
+              <StarRatingInput />
             </div>
 
-            <textarea name="content" rows={4} placeholder="Your Review *" className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-[#F4F7F9] focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none" required></textarea>
+            <textarea name="content" rows={5} placeholder="Your Review *" className="w-full px-4 py-4 rounded-xl border border-slate-200 bg-[#F4F7F9] focus:bg-white focus:outline-none shadow-inner focus:shadow-md transition-all text-slate-900 font-medium placeholder-slate-400 resize-none mb-2" required></textarea>
             <SubmitButton />
           </form>
         </div>
