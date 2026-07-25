@@ -1,6 +1,123 @@
 'use server';
 
-const endpoint = 'https://admin.dffotoshop.com.ng/wp/graphql';
+const endpoint = 'https://admin.dffotoshop.com.ng/graphql';
+
+// Helper function to handle GraphQL requests and manage the WooCommerce Session token
+async function fetchGraphQL(query: string, variables: any = {}, sessionToken: string | null = null) {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+
+  if (sessionToken) {
+    headers['woocommerce-session'] = sessionToken.startsWith('Session ') ? sessionToken : `Session ${sessionToken}`;
+  }
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query, variables }),
+    cache: 'no-store', // CRITICAL: Disable caching for dynamic cart operations
+  });
+
+  const json = await res.json();
+  const returnedSession = res.headers.get('woocommerce-session');
+
+  return {
+    data: json.data,
+    errors: json.errors,
+    newSessionToken: returnedSession || sessionToken
+  };
+}
+
+export async function syncCartAndFetchShipping({
+  lineItems,
+  country,
+  state,
+  sessionToken
+}: {
+  lineItems: { productId: number; quantity: number }[];
+  country: string;
+  state: string;
+  sessionToken: string | null;
+}) {
+  try {
+    let currentSession = sessionToken;
+
+    // Step 1: If we already have a session, empty the server cart first so we don't duplicate items
+    if (currentSession) {
+      const emptyMutation = `mutation EmptyCart { emptyCart(input: {clearPersistentCart: false}) { clientMutationId } }`;
+      await fetchGraphQL(emptyMutation, {}, currentSession);
+    }
+
+    // Step 2: Add all Zustand cart items to the WooCommerce server cart
+    for (const item of lineItems) {
+      const addMutation = `
+        mutation AddToCart($productId: Int!, $quantity: Int!) {
+          addToCart(input: { productId: $productId, quantity: $quantity }) {
+            cartItem { key }
+          }
+        }
+      `;
+      const result = await fetchGraphQL(addMutation, { productId: item.productId, quantity: item.quantity }, currentSession);
+
+      if (result.errors) {
+        console.error("AddToCart Error:", result.errors);
+        throw new Error(result.errors[0]?.message || 'Failed to sync cart with server.');
+      }
+
+      // Capture the session token on the first item added
+      if (!currentSession && result.newSessionToken) {
+        currentSession = result.newSessionToken;
+      }
+    }
+
+    if (!currentSession) {
+      throw new Error('Could not establish a secure session with the store.');
+    }
+
+    // Step 3: Update the customer's shipping address to calculate correct zones
+    const updateCustomerMutation = `
+      mutation UpdateCustomer($shipping: CustomerAddressInput) {
+        updateCustomer(input: { shipping: $shipping }) {
+          customer { id }
+        }
+      }
+    `;
+    await fetchGraphQL(updateCustomerMutation, { shipping: { country, state } }, currentSession);
+
+    // Step 4: Fetch the dynamically calculated shipping methods
+    const cartQuery = `
+      query GetCartShipping {
+        cart {
+          availableShippingMethods {
+            rates {
+              id
+              label
+              cost
+            }
+          }
+        }
+      }
+    `;
+    const cartResult = await fetchGraphQL(cartQuery, {}, currentSession);
+
+    let shippingMethods = [];
+    const packages = cartResult.data?.cart?.availableShippingMethods || [];
+
+    // WooCommerce groups shipping by packages. Usually, everything is in package [0].
+    if (packages.length > 0 && packages[0].rates) {
+      shippingMethods = packages[0].rates;
+    }
+
+    return {
+      success: true,
+      sessionToken: currentSession,
+      shippingMethods
+    };
+
+  } catch (error: any) {
+    console.error('Cart Sync Error:', error);
+    return { success: false, message: error.message || 'Failed to sync cart.' };
+  }
+}
 
 export async function processCheckout(
   contact: any,
@@ -8,62 +125,14 @@ export async function processCheckout(
   billing: any,
   customerNote: string,
   shippingMethod: string,
-  lineItems: { productId: number; quantity: number }[]
+  sessionToken: string | null
 ) {
-  if (!lineItems || lineItems.length === 0) {
-    return { success: false, message: 'Your cart is empty.' };
+  // If the user tries to checkout without a session, the cart was never synced.
+  if (!sessionToken) {
+    return { success: false, message: 'Cart session expired or missing. Please refresh and try again.' };
   }
 
   try {
-    let sessionHeader = '';
-
-    // Step 1: Build the session by adding items to the server-side cart
-    for (let i = 0; i < lineItems.length; i++) {
-      const item = lineItems[i];
-      
-      const query = `
-        mutation AddToCart($productId: Int!, $quantity: Int!) {
-          addToCart(input: { productId: $productId, quantity: $quantity }) {
-            cartItem { key }
-          }
-        }
-      `;
-
-      const headers: HeadersInit = { 'Content-Type': 'application/json' };
-      if (sessionHeader) {
-        headers['woocommerce-session'] = sessionHeader.startsWith('Session ') ? sessionHeader : `Session ${sessionHeader}`;
-      }
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          query,
-          variables: { productId: item.productId, quantity: item.quantity }
-        }),
-        cache: 'no-store' // CRITICAL: Disable Next.js caching to ensure session headers are returned
-      });
-
-      const json = await res.json();
-      
-      if (json.errors) {
-        console.error("AddToCart Error:", json.errors);
-        return { success: false, message: json.errors[0]?.message || 'Failed to add items to server cart' };
-      }
-
-      if (i === 0) {
-        const returnedSession = res.headers.get('woocommerce-session');
-        if (returnedSession) {
-          sessionHeader = returnedSession;
-        }
-      }
-    }
-
-    if (!sessionHeader) {
-      return { success: false, message: 'Failed to securely connect to the storefront (no session generated).' };
-    }
-
-    // Step 2: Execute Checkout with the session
     const checkoutQuery = `
       mutation Checkout($billing: CustomerAddressInput, $shipping: CustomerAddressInput, $paymentMethod: String!, $customerNote: String, $shippingMethod: [String]) {
         checkout(input: {
@@ -79,46 +148,35 @@ export async function processCheckout(
       }
     `;
 
+    // Ensure email is passed into the billing and shipping objects for WooCommerce
     const finalBilling = { ...billing, email: contact.email };
     const finalShipping = { ...shipping, email: contact.email };
     const shippingMethodArray = shippingMethod ? [shippingMethod] : undefined;
 
-    const checkoutRes = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'woocommerce-session': sessionHeader.startsWith('Session ') ? sessionHeader : `Session ${sessionHeader}`
-      },
-      body: JSON.stringify({
-        query: checkoutQuery,
-        variables: {
-          billing: finalBilling,
-          shipping: finalShipping,
-          paymentMethod: 'paystack',
-          customerNote: customerNote || '',
-          shippingMethod: shippingMethodArray
-        }
-      }),
-      cache: 'no-store'
-    });
+    const result = await fetchGraphQL(checkoutQuery, {
+      billing: finalBilling,
+      shipping: finalShipping,
+      paymentMethod: 'paystack', // This MUST match the ID of your Paystack plugin in WooCommerce
+      customerNote: customerNote || '',
+      shippingMethod: shippingMethodArray
+    }, sessionToken);
 
-    const checkoutJson = await checkoutRes.json();
-
-    if (checkoutJson.errors) {
-      console.error("Checkout Error:", checkoutJson.errors);
-      return { success: false, message: checkoutJson.errors[0]?.message || 'Checkout failed on the server' };
+    if (result.errors) {
+      console.error("Checkout Error:", result.errors);
+      return { success: false, message: result.errors[0]?.message || 'Checkout failed on the server.' };
     }
 
-    const checkoutResult = checkoutJson.data?.checkout;
+    const checkoutResult = result.data?.checkout;
 
+    // A successful Paystack/WooCommerce headless checkout returns 'SUCCESS' and a redirect URL
     if (checkoutResult?.result === 'SUCCESS' && checkoutResult?.redirect) {
       return { success: true, redirectUrl: checkoutResult.redirect };
     }
 
-    return { success: false, message: 'Checkout failed. Please try again.' };
+    return { success: false, message: 'Checkout processed, but no payment link was returned.' };
 
   } catch (error) {
     console.error('Checkout action error:', error);
-    return { success: false, message: 'An unexpected error occurred during checkout.' };
+    return { success: false, message: 'An unexpected network error occurred during checkout.' };
   }
 }
