@@ -112,7 +112,10 @@ export const CheckoutForm = () => {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const contact = { email: formData.get('email') as string };
+
+      // Trim email to prevent invisible whitespace failing Paystack validation
+      const rawEmail = formData.get('email') as string;
+      const contact = { email: rawEmail ? rawEmail.trim() : '' };
 
       const shipping = {
         firstName: formData.get('shippingFirstName') as string,

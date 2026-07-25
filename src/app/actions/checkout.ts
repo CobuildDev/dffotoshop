@@ -94,7 +94,7 @@ export async function syncCartAndFetchShipping({
     `;
     const cartResult = await fetchGraphQL(cartQuery, {}, currentSession);
 
-    let shippingMethods = [];
+    let shippingMethods: any = [];
     const packages = cartResult.data?.cart?.availableShippingMethods || [];
 
     if (packages.length > 0 && packages[0].rates) {
@@ -154,11 +154,12 @@ export async function processCheckout(
         }
       }
 
-      clean.email = defaultEmail;
+      // Clean the email to prevent Paystack validation crashes due to hidden spaces
+      clean.email = defaultEmail.trim();
 
       // CRITICAL FIX: Paystack will crash and return 'null' if a phone number is missing.
       if (isBilling && !clean.phone) {
-        clean.phone = contact.phone || '08000000000'; // Injects a dummy phone if user left it blank
+        clean.phone = contact.phone || '08000000000';
       }
 
       return clean;
@@ -186,12 +187,18 @@ export async function processCheckout(
     console.log("WOOCOMMERCE RAW RESPONSE:", JSON.stringify(checkoutResult, null, 2));
 
     if (checkoutResult?.result?.toLowerCase() === 'success') {
-      // We ignore checkoutResult.redirect because 'bacs' tries to send us to the receipt page.
-      // Instead, we force the user to the native payment gateway page to pay via Paystack.
 
+      // 1. Primary Redirect: Trust WooCommerce's native redirect now that the order is "Pending"
+      if (checkoutResult.redirect) {
+        return { success: true, redirectUrl: checkoutResult.redirect };
+      }
+
+      // 2. Fallback Redirect: Build it manually with the /wp directory and strict trailing slash
       if (checkoutResult.order?.databaseId && checkoutResult.order?.orderKey) {
         const orderId = checkoutResult.order.databaseId;
         const orderKey = checkoutResult.order.orderKey;
+
+        // CRITICAL: The trailing slash before the ? is required to prevent WP 301 redirects from dropping the key
         const paymentUrl = `https://admin.dffotoshop.com.ng/wp/checkout/order-pay/${orderId}/?pay_for_order=true&key=${orderKey}`;
 
         return { success: true, redirectUrl: paymentUrl };
